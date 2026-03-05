@@ -53,6 +53,28 @@ extern "C" {
  */
 #define AILIA_VOICE_DICTIONARY_TYPE_G2P_EN (1)
 
+/**
+ * \~japanese
+ * @def AILIA_VOICE_DICTIONARY_TYPE_G2P_CN
+ * @brief G2P_CN形式
+ *
+ * \~english
+ * @def AILIA_VOICE_DICTIONARY_TYPE_G2P_CN
+ * @brief Format for G2P_CN
+ */
+#define AILIA_VOICE_DICTIONARY_TYPE_G2P_CN (2)
+
+/**
+ * \~japanese
+ * @def AILIA_VOICE_DICTIONARY_TYPE_G2PW
+ * @brief G2PW形式（中国語多音字対応）
+ *
+ * \~english
+ * @def AILIA_VOICE_DICTIONARY_TYPE_G2PW
+ * @brief Format for G2PW (Chinese polyphone disambiguation)
+ */
+#define AILIA_VOICE_DICTIONARY_TYPE_G2PW (3)
+
 /****************************************************************
  * アルゴリズム定義
  **/
@@ -78,6 +100,39 @@ extern "C" {
  * @brief Format for GPT-SoVITS
  */
 #define AILIA_VOICE_MODEL_TYPE_GPT_SOVITS (1)
+
+/**
+ * \~japanese
+ * @def AILIA_VOICE_MODEL_TYPE_GPT_SOVITS_V2
+ * @brief GPT-SoVITS V2形式
+ *
+ * \~english
+ * @def AILIA_VOICE_MODEL_TYPE_GPT_SOVITS_V2
+ * @brief Format for GPT-SoVITS V2
+ */
+#define AILIA_VOICE_MODEL_TYPE_GPT_SOVITS_V2 (2)
+
+/**
+ * \~japanese
+ * @def AILIA_VOICE_MODEL_TYPE_GPT_SOVITS_V3
+ * @brief GPT-SoVITS v3形式
+ *
+ * \~english
+ * @def AILIA_VOICE_MODEL_TYPE_GPT_SOVITS_V3
+ * @brief Format for GPT-SoVITS v3
+ */
+#define AILIA_VOICE_MODEL_TYPE_GPT_SOVITS_V3 (3)
+
+/**
+ * \~japanese
+ * @def AILIA_VOICE_MODEL_TYPE_GPT_SOVITS_V2_PRO
+ * @brief GPT-SoVITS v2-pro形式
+ *
+ * \~english
+ * @def AILIA_VOICE_MODEL_TYPE_GPT_SOVITS_V2_PRO
+ * @brief Format for GPT-SoVITS v2-pro
+ */
+#define AILIA_VOICE_MODEL_TYPE_GPT_SOVITS_V2_PRO (4)
 
 /**
  * \~japanese
@@ -142,6 +197,17 @@ extern "C" {
  */
 #define AILIA_VOICE_G2P_TYPE_GPT_SOVITS_JA (2)
 
+/**
+ * \~japanese
+ * @def AILIA_VOICE_G2P_TYPE_GPT_SOVITS_ZH
+ * @brief GPT_SOVITSの中国語向けの処理
+ *
+ * \~english
+ * @def AILIA_VOICE_G2P_TYPE_GPT_SOVITS_ZH
+ * @brief GPT SOVITS Chinese
+ */
+#define AILIA_VOICE_G2P_TYPE_GPT_SOVITS_ZH (3)
+
 #define AILIA_VOICE_TEXT_POST_PROCESS_APPEND_PUNCTUATION (2) // 互換性用
 
 /****************************************************************
@@ -159,6 +225,9 @@ extern "C" {
 // ailia.audio API
 typedef int(AILIA_VOICE_USER_API* AILIA_VOICE_USER_API_AILIA_AUDIO_RESAMPLE)(void*, const void*, int, int, int, int);
 typedef int(AILIA_VOICE_USER_API* AILIA_VOICE_USER_API_AILIA_AUDIO_GET_RESAMPLE_LEN)(int*, int, int, int);
+typedef int(AILIA_VOICE_USER_API* AILIA_VOICE_USER_API_AILIA_AUDIO_GET_FRAME_LEN)(int*, int, int, int, int);
+typedef int(AILIA_VOICE_USER_API* AILIA_VOICE_USER_API_AILIA_AUDIO_GET_SPECTROGRAM)(void*, const void*, int, int, int, int, int, int, int, float, int);
+typedef int(AILIA_VOICE_USER_API* AILIA_VOICE_USER_API_AILIA_AUDIO_GET_MEL_SPECTROGRAM)(void*, const void*, int, int, int, int, int, int, int, int, float, int, float, float, int, int, int);
 
 // ailia API
 typedef int(AILIA_VOICE_USER_API* AILIA_VOICE_USER_API_AILIA_CREATE)(struct AILIANetwork **, int, int);
@@ -188,12 +257,15 @@ typedef int(AILIA_VOICE_USER_API* AILIA_VOICE_USER_API_AILIA_COPY_BLOB_DATA)(str
 * @def AILIA_VOICE_API_CALLBACK_VERSION
 * @brief Struct version
 */
-#define AILIA_VOICE_API_CALLBACK_VERSION (2)
+#define AILIA_VOICE_API_CALLBACK_VERSION (3)
 
 /* APIコールバック関数構造体 */
 typedef struct _AILIAVoiceApiCallback {
 	AILIA_VOICE_USER_API_AILIA_AUDIO_RESAMPLE ailiaAudioResample;
 	AILIA_VOICE_USER_API_AILIA_AUDIO_GET_RESAMPLE_LEN ailiaAudioGetResampleLen;
+	AILIA_VOICE_USER_API_AILIA_AUDIO_GET_FRAME_LEN ailiaAudioGetFrameLen;
+	AILIA_VOICE_USER_API_AILIA_AUDIO_GET_SPECTROGRAM ailiaAudioGetSpectrogram;
+	AILIA_VOICE_USER_API_AILIA_AUDIO_GET_MEL_SPECTROGRAM ailiaAudioGetMelSpectrogram;
 	AILIA_VOICE_USER_API_AILIA_CREATE ailiaCreate;
 	AILIA_VOICE_USER_API_AILIA_OPEN_WEIGHT_FILE_A ailiaOpenWeightFileA;
 	AILIA_VOICE_USER_API_AILIA_OPEN_WEIGHT_FILE_W ailiaOpenWeightFileW;
@@ -309,6 +381,11 @@ int AILIA_API ailiaVoiceSetUserDictionaryFileW(struct AILIAVoice* net, const wch
  * @param dictionary_type AILIA_VOICE_DICTIONARY_TYPE_*
  * @return
  *   成功した場合は \ref AILIA_STATUS_SUCCESS 、そうでなければエラーコードを返す。
+ * @details
+ *   中国語を使用する場合、GPT-SoVITS V1では \ref AILIA_VOICE_DICTIONARY_TYPE_G2P_CN のみ必要です。
+ *   GPT-SoVITS V2およびV3では \ref AILIA_VOICE_DICTIONARY_TYPE_G2P_CN と
+ *   \ref AILIA_VOICE_DICTIONARY_TYPE_G2PW の両方が必要です。
+ *   G2PWを使用する場合、先にG2P_CNを読み込んでください。
  *
  * \~english
  * @brief Set dictionary into a network instance.
@@ -317,6 +394,11 @@ int AILIA_API ailiaVoiceSetUserDictionaryFileW(struct AILIAVoice* net, const wch
  * @param dictionary_type AILIA_VOICE_DICTIONARY_TYPE_*
  * @return
  *   If this function is successful, it returns  \ref AILIA_STATUS_SUCCESS , or an error code otherwise.
+ * @details
+ *   For Chinese, GPT-SoVITS V1 requires only \ref AILIA_VOICE_DICTIONARY_TYPE_G2P_CN .
+ *   GPT-SoVITS V2 and V3 require both \ref AILIA_VOICE_DICTIONARY_TYPE_G2P_CN and
+ *   \ref AILIA_VOICE_DICTIONARY_TYPE_G2PW .
+ *   When using G2PW, load G2P_CN first.
  */
 int AILIA_API ailiaVoiceOpenDictionaryFileA(struct AILIAVoice* net, const char* dictionary_path, int dictionary_type);
 
@@ -328,6 +410,11 @@ int AILIA_API ailiaVoiceOpenDictionaryFileA(struct AILIAVoice* net, const char* 
  * @param dictionary_type AILIA_VOICE_DICTIONARY_TYPE_*
  * @return
  *   成功した場合は \ref AILIA_STATUS_SUCCESS 、そうでなければエラーコードを返す。
+ * @details
+ *   中国語を使用する場合、GPT-SoVITS V1では \ref AILIA_VOICE_DICTIONARY_TYPE_G2P_CN のみ必要です。
+ *   GPT-SoVITS V2およびV3では \ref AILIA_VOICE_DICTIONARY_TYPE_G2P_CN と
+ *   \ref AILIA_VOICE_DICTIONARY_TYPE_G2PW の両方が必要です。
+ *   G2PWを使用する場合、先にG2P_CNを読み込んでください。
  *
  * \~english
  * @brief Set dictionary into a network instance.
@@ -336,6 +423,11 @@ int AILIA_API ailiaVoiceOpenDictionaryFileA(struct AILIAVoice* net, const char* 
  * @param dictionary_type AILIA_VOICE_DICTIONARY_TYPE_*
  * @return
  *   If this function is successful, it returns  \ref AILIA_STATUS_SUCCESS , or an error code otherwise.
+ * @details
+ *   For Chinese, GPT-SoVITS V1 requires only \ref AILIA_VOICE_DICTIONARY_TYPE_G2P_CN .
+ *   GPT-SoVITS V2 and V3 require both \ref AILIA_VOICE_DICTIONARY_TYPE_G2P_CN and
+ *   \ref AILIA_VOICE_DICTIONARY_TYPE_G2PW .
+ *   When using G2PW, load G2P_CN first.
  */
 int AILIA_API ailiaVoiceOpenDictionaryFileW(struct AILIAVoice* net, const wchar_t* dictionary_path, int dictionary_type);
 
@@ -396,6 +488,118 @@ int AILIA_API ailiaVoiceOpenModelFileA(struct AILIAVoice* net, const char* encod
  *   If this function is successful, it returns  \ref AILIA_STATUS_SUCCESS , or an error code otherwise.
  */
 int AILIA_API ailiaVoiceOpenModelFileW(struct AILIAVoice* net, const wchar_t* encoder, const wchar_t* decoder1, const wchar_t* decoder2, const wchar_t* wave, const wchar_t* ssl, int model_type, int cleaner_type);
+
+/**
+ * \~japanese
+ * @brief GPT-SoVITS V3向けのモデルを指定します。(MBSC)
+ * @param net ネットワークオブジェクトポインタ
+ * @param encoder_path onnxファイルのパス名 (t2s_encoder.onnx) (MBSC)
+ * @param decoder1_path onnxファイルのパス名 (t2s_fsdec.onnx) (MBSC)
+ * @param decoder2_path onnxファイルのパス名 (t2s_sdec.onnx) (MBSC)
+ * @param ssl_path onnxファイルのパス名 (cnhubert.onnx) (MBSC)
+ * @param vq_path onnxファイルのパス名 (vq_model.onnx) (MBSC)
+ * @param cfm_path onnxファイルのパス名 (vq_cfm.onnx) (MBSC)
+ * @param bigvgan_path onnxファイルのパス名 (bigvgan_model.onnx) (MBSC)
+ * @return
+ *   成功した場合は \ref AILIA_STATUS_SUCCESS 、そうでなければエラーコードを返す。
+ *
+ * \~english
+ * @brief Set GPT-SoVITS V3 models into a network instance.
+ * @param net A network instance pointer
+ * @param encoder The path name to the onnx file (t2s_encoder.onnx) (MBSC)
+ * @param decoder1 The path name to the onnx file (t2s_fsdec.onnx) (MBSC)
+ * @param decoder2 The path name to the onnx file (t2s_sdec.onnx) (MBSC)
+ * @param ssl The path name to the onnx file (cnhubert.onnx) (MBSC)
+ * @param vq The path name to the onnx file (vq_model.onnx) (MBSC)
+ * @param cfm The path name to the onnx file (vq_cfm.onnx) (MBSC)
+ * @param bigvgan The path name to the onnx file (bigvgan_model.onnx) (MBSC)
+ * @return
+ *   If this function is successful, it returns  \ref AILIA_STATUS_SUCCESS , or an error code otherwise.
+ */
+int AILIA_API ailiaVoiceOpenModelFileGPTSoVITSV3A(struct AILIAVoice* net, const char* encoder, const char* decoder1, const char* decoder2, const char* ssl, const char* vq, const char* cfm, const char* bigvgan);
+
+/**
+ * \~japanese
+ * @brief GPT-SoVITS V3向けのモデルを指定します。(UTF16)
+ * @param net ネットワークオブジェクトポインタ
+ * @param encoder onnxファイルのパス名 (t2s_encoder.onnx) (UTF16)
+ * @param decoder1 onnxファイルのパス名 (t2s_fsdec.onnx) (UTF16)
+ * @param decoder2 onnxファイルのパス名 (t2s_sdec.onnx) (UTF16)
+ * @param ssl onnxファイルのパス名 (cnhubert.onnx) (UTF16)
+ * @param vq onnxファイルのパス名 (vq_model.onnx) (UTF16)
+ * @param cfm onnxファイルのパス名 (vq_cfm.onnx) (UTF16)
+ * @param bigvgan onnxファイルのパス名 (bigvgan_model.onnx) (UTF16)
+ * @return
+ *   成功した場合は \ref AILIA_STATUS_SUCCESS 、そうでなければエラーコードを返す。
+ *
+ * \~english
+ * @brief Set GPT-SoVITS V3 models into a network instance.
+ * @param net A network instance pointer
+ * @param encoder The path name to the onnx file (t2s_encoder.onnx) (UTF16)
+ * @param decoder1 The path name to the onnx file (t2s_fsdec.onnx) (UTF16)
+ * @param decoder2 The path name to the onnx file (t2s_sdec.onnx) (UTF16)
+ * @param ssl The path name to the onnx file (cnhubert.onnx) (UTF16)
+ * @param vq The path name to the onnx file (vq_model.onnx) (UTF16)
+ * @param cfm The path name to the onnx file (vq_cfm.onnx) (UTF16)
+ * @param bigvgan The path name to the onnx file (bigvgan_model.onnx) (UTF16)
+ * @return
+ *   If this function is successful, it returns  \ref AILIA_STATUS_SUCCESS , or an error code otherwise.
+ */
+int AILIA_API ailiaVoiceOpenModelFileGPTSoVITSV3W(struct AILIAVoice* net, const wchar_t* encoder, const wchar_t* decoder1, const wchar_t* decoder2, const wchar_t* ssl, const wchar_t* vq, const wchar_t* cfm, const wchar_t* bigvgan);
+
+/**
+ * \~japanese
+ * @brief GPT-SoVITS V2-Pro向けのモデルを指定します。(MBSC)
+ * @param net ネットワークオブジェクトポインタ
+ * @param encoder onnxファイルのパス名 (t2s_encoder.onnx) (MBSC)
+ * @param decoder1 onnxファイルのパス名 (t2s_fsdec.onnx) (MBSC)
+ * @param decoder2 onnxファイルのパス名 (t2s_sdec.onnx) (MBSC)
+ * @param ssl onnxファイルのパス名 (cnhubert.onnx) (MBSC)
+ * @param vits onnxファイルのパス名 (vits.onnx) (MBSC)
+ * @param sv onnxファイルのパス名 (sv.onnx) (MBSC)
+ * @return
+ *   成功した場合は \ref AILIA_STATUS_SUCCESS 、そうでなければエラーコードを返す。
+ *
+ * \~english
+ * @brief Set GPT-SoVITS V2-Pro models into a network instance.
+ * @param net A network instance pointer
+ * @param encoder The path name to the onnx file (t2s_encoder.onnx) (MBSC)
+ * @param decoder1 The path name to the onnx file (t2s_fsdec.onnx) (MBSC)
+ * @param decoder2 The path name to the onnx file (t2s_sdec.onnx) (MBSC)
+ * @param ssl The path name to the onnx file (cnhubert.onnx) (MBSC)
+ * @param vits The path name to the onnx file (vits.onnx) (MBSC)
+ * @param sv The path name to the onnx file (sv.onnx) (MBSC)
+ * @return
+ *   If this function is successful, it returns  \ref AILIA_STATUS_SUCCESS , or an error code otherwise.
+ */
+int AILIA_API ailiaVoiceOpenModelFileGPTSoVITSV2ProA(struct AILIAVoice* net, const char* encoder, const char* decoder1, const char* decoder2, const char* ssl, const char* vits, const char* sv);
+
+/**
+ * \~japanese
+ * @brief GPT-SoVITS V2-Pro向けのモデルを指定します。(UTF16)
+ * @param net ネットワークオブジェクトポインタ
+ * @param encoder onnxファイルのパス名 (t2s_encoder.onnx) (UTF16)
+ * @param decoder1 onnxファイルのパス名 (t2s_fsdec.onnx) (UTF16)
+ * @param decoder2 onnxファイルのパス名 (t2s_sdec.onnx) (UTF16)
+ * @param ssl onnxファイルのパス名 (cnhubert.onnx) (UTF16)
+ * @param vits onnxファイルのパス名 (vits.onnx) (UTF16)
+ * @param sv onnxファイルのパス名 (sv.onnx) (UTF16)
+ * @return
+ *   成功した場合は \ref AILIA_STATUS_SUCCESS 、そうでなければエラーコードを返す。
+ *
+ * \~english
+ * @brief Set GPT-SoVITS V2-Pro models into a network instance.
+ * @param net A network instance pointer
+ * @param encoder The path name to the onnx file (t2s_encoder.onnx) (UTF16)
+ * @param decoder1 The path name to the onnx file (t2s_fsdec.onnx) (UTF16)
+ * @param decoder2 The path name to the onnx file (t2s_sdec.onnx) (UTF16)
+ * @param ssl The path name to the onnx file (cnhubert.onnx) (UTF16)
+ * @param vits The path name to the onnx file (vits.onnx) (UTF16)
+ * @param sv The path name to the onnx file (sv.onnx) (UTF16)
+ * @return
+ *   If this function is successful, it returns  \ref AILIA_STATUS_SUCCESS , or an error code otherwise.
+ */
+int AILIA_API ailiaVoiceOpenModelFileGPTSoVITSV2ProW(struct AILIAVoice* net, const wchar_t* encoder, const wchar_t* decoder1, const wchar_t* decoder2, const wchar_t* ssl, const wchar_t* vits, const wchar_t* sv);
 
 /**
  * \~japanese
@@ -509,6 +713,67 @@ int AILIA_API ailiaVoiceSetReference(struct AILIAVoice* net, float* buf, unsigne
 
 /**
  * \~japanese
+ * @brief GPT-SoVITS v3のCFMサンプリングステップ数を設定します。
+ * @param net ボイスオブジェクトポインタ
+ * @param steps CFMのEuler ODEステップ数(デフォルト4)
+ * @return
+ *   成功した場合は \ref AILIA_STATUS_SUCCESS 、そうでなければエラーコードを返す。
+ *
+ * \~english
+ * @brief Set the number of CFM sampling steps for GPT-SoVITS v3.
+ * @param net A Voice instance pointer
+ * @param steps Number of Euler ODE steps for CFM (default 4)
+ * @return
+ *   If this function is successful, it returns  \ref AILIA_STATUS_SUCCESS , or an error code otherwise.
+ */
+int AILIA_API ailiaVoiceSetSampleSteps(struct AILIAVoice* net, int steps);
+
+/**
+ * \~japanese
+ * @brief 音声合成の速度を設定します。
+ * @param net ボイスオブジェクトポインタ
+ * @param speed 速度(デフォルト1.0、0より大きい値)
+ * @return
+ *   成功した場合は \ref AILIA_STATUS_SUCCESS 、そうでなければエラーコードを返す。
+ * @details
+ *   GPT-SoVITS V2およびV3で使用できます。V1では無効です。
+ *
+ * \~english
+ * @brief Set the speech speed for synthesis.
+ * @param net A Voice instance pointer
+ * @param speed Speed value (default 1.0, must be greater than 0)
+ * @return
+ *   If this function is successful, it returns  \ref AILIA_STATUS_SUCCESS , or an error code otherwise.
+ * @details
+ *   Supported by GPT-SoVITS V2 and V3. Not effective for V1.
+ */
+int AILIA_API ailiaVoiceSetSpeed(struct AILIAVoice* net, float speed);
+
+/**
+ * \~japanese
+ * @brief G2Pで使用するモデルタイプを設定します。
+ * @param net ボイスオブジェクトポインタ
+ * @param model_type モデルタイプ（AILIA_VOICE_MODEL_TYPE_GPT_SOVITS, AILIA_VOICE_MODEL_TYPE_GPT_SOVITS_V2, AILIA_VOICE_MODEL_TYPE_GPT_SOVITS_V3, AILIA_VOICE_MODEL_TYPE_GPT_SOVITS_V2_PRO）
+ * @return
+ *   成功した場合は \ref AILIA_STATUS_SUCCESS 、そうでなければエラーコードを返す。
+ * @details
+ *   G2Pを単独で使用する際に、モデルファイルを与えずにモデルタイプを設定することに使用します。
+ *   ailiaVoiceOpenModelFileAまたはailiaVoiceOpenModelFileGPTSoVITSV3Aを呼び出した場合は自動的に設定されるため、本APIの呼び出しは不要です。
+ *
+ * \~english
+ * @brief Set the model type used for G2P processing.
+ * @param net A Voice instance pointer
+ * @param model_type Model type (AILIA_VOICE_MODEL_TYPE_GPT_SOVITS, AILIA_VOICE_MODEL_TYPE_GPT_SOVITS_V2, AILIA_VOICE_MODEL_TYPE_GPT_SOVITS_V3, AILIA_VOICE_MODEL_TYPE_GPT_SOVITS_V2_PRO)
+ * @return
+ *   If this function is successful, it returns  \ref AILIA_STATUS_SUCCESS , or an error code otherwise.
+ * @details
+ *   Used to set the model type when using G2P standalone without opening model files.
+ *   If ailiaVoiceOpenModelFileA or ailiaVoiceOpenModelFileGPTSoVITSV3A is called, the model type is set automatically, so calling this API is not required.
+ */
+int AILIA_API ailiaVoiceSetModelType(struct AILIAVoice* net, int model_type);
+
+/**
+ * \~japanese
  * @brief 推論を行います。
  * @param net ボイスオブジェクトポインタ
  * @param text テキスト(UTF8)
@@ -608,10 +873,14 @@ const char* AILIA_API ailiaVoiceGetErrorDetail(struct AILIAVoice* net);
 #define ailiaVoiceSetUserDictionaryFile ailiaVoiceSetUserDictionaryFileW
 #define ailiaVoiceOpenDictionaryFile ailiaVoiceOpenDictionaryFileW
 #define ailiaVoiceOpenModelFile ailiaVoiceOpenModelFileW
+#define ailiaVoiceOpenModelFileGPTSoVITSV3 ailiaVoiceOpenModelFileGPTSoVITSV3W
+#define ailiaVoiceOpenModelFileGPTSoVITSV2Pro ailiaVoiceOpenModelFileGPTSoVITSV2ProW
 #else
 #define ailiaVoiceSetUserDictionaryFile ailiaVoiceSetUserDictionaryFileA
 #define ailiaVoiceOpenDictionaryFile ailiaVoiceOpenDictionaryFileW
 #define ailiaVoiceOpenModelFile ailiaVoiceOpenModelFileW
+#define ailiaVoiceOpenModelFileGPTSoVITSV3 ailiaVoiceOpenModelFileGPTSoVITSV3A
+#define ailiaVoiceOpenModelFileGPTSoVITSV2Pro ailiaVoiceOpenModelFileGPTSoVITSV2ProA
 #endif
 
 #ifdef __cplusplus
