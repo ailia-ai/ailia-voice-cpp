@@ -3,7 +3,7 @@
  * @file ailia_voice.h
  * @brief ailia Voice ライブラリ
  * @copyright AXELL CORPORATION, ailia Inc.
- * @date 2024/06/27
+ * @date 2026/03/10
  */
 
 #ifndef INCLUDED_AILIA_VOICE
